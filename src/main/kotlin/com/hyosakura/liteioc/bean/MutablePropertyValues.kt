@@ -5,20 +5,33 @@ package com.hyosakura.liteioc.bean
  *
  * @author LovesAsuna
  */
-class MutablePropertyValues : Iterable<PropertyValue> {
+class MutablePropertyValues : PropertyValues {
     // 存储多个PropertyValue对象
-    val propertyValueList: MutableList<PropertyValue>
+    private lateinit var propertyValueList: MutableList<PropertyValue>
+
+    private var processedProperties: MutableSet<String>? = null
+
+    @Volatile
+    private var converted = false
 
     constructor() {
-        propertyValueList = ArrayList()
+        propertyValueList = ArrayList(0)
+    }
+
+    constructor(original: PropertyValues?) {
+        if (original != null) {
+            val pvs = original.getPropertyValues()
+            this.propertyValueList = ArrayList(pvs.size)
+            for (pv in pvs) {
+                this.propertyValueList.add(PropertyValue(pv))
+            }
+        } else {
+            this.propertyValueList = ArrayList(0)
+        }
     }
 
     constructor(propertyValueList: MutableList<PropertyValue>?) {
-        if (propertyValueList == null) {
-            this.propertyValueList = ArrayList()
-        } else {
-            this.propertyValueList = propertyValueList
-        }
+        this.propertyValueList = propertyValueList ?: ArrayList()
     }
 
     /**
@@ -26,7 +39,7 @@ class MutablePropertyValues : Iterable<PropertyValue> {
      *
      * @return PropertyValue数组
      */
-    fun getPropertyValues(): Array<PropertyValue> = propertyValueList.toTypedArray()
+    override fun getPropertyValues(): Array<PropertyValue> = propertyValueList.toTypedArray()
 
     /**
      * 根据name属性值获取PropertyValue对象
@@ -34,7 +47,7 @@ class MutablePropertyValues : Iterable<PropertyValue> {
      * @param propertyName propertyName
      * @return PropertyValue
      */
-    fun getPropertyValue(propertyName: String): PropertyValue? {
+    override fun getPropertyValue(propertyName: String?): PropertyValue? {
         for (propertyValue in propertyValueList) {
             if (propertyValue.name == propertyName) {
                 return propertyValue
@@ -48,7 +61,12 @@ class MutablePropertyValues : Iterable<PropertyValue> {
      *
      * @return boolean
      */
-    fun isEmpty(): Boolean = propertyValueList.isEmpty()
+    override fun isEmpty(): Boolean = propertyValueList.isEmpty()
+
+    fun add(propertyName: String, propertyValue: Any?): MutablePropertyValues {
+        addPropertyValue(PropertyValue(propertyName, propertyValue))
+        return this
+    }
 
     /**
      * 往集合中添加PropertyValue对象
@@ -77,11 +95,29 @@ class MutablePropertyValues : Iterable<PropertyValue> {
      * @param propertyName propertyName
      * @return 操作是否成功
      */
-    operator fun contains(propertyName: String): Boolean {
+    override fun contains(propertyName: String?): Boolean {
         return getPropertyValue(propertyName) != null
     }
 
-    override fun iterator(): Iterator<PropertyValue> {
-        return propertyValueList.iterator()
+    fun setConverted() {
+        this.converted = true
     }
+
+    fun isConverted(): Boolean = this.converted
+
+    fun getPropertyValueList(): List<PropertyValue> = this.propertyValueList
+
+    fun registerProcessedProperty(propertyName: String) {
+        if (this.processedProperties == null) {
+            this.processedProperties = HashSet(4)
+        }
+        this.processedProperties!!.add(propertyName)
+    }
+
+    fun clearProcessedProperty(propertyName: String) {
+        if (processedProperties != null) {
+            processedProperties!!.remove(propertyName)
+        }
+    }
+
 }

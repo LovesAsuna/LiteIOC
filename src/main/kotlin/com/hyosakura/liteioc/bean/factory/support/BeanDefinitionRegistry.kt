@@ -1,6 +1,7 @@
 package com.hyosakura.liteioc.bean.factory.support
 
 import com.hyosakura.liteioc.bean.BeanDefinition
+import com.hyosakura.liteioc.bean.factory.NoSuchBeanDefinitionException
 
 
 /**
@@ -9,6 +10,7 @@ import com.hyosakura.liteioc.bean.BeanDefinition
  * @author LovesAsuna
  */
 interface BeanDefinitionRegistry {
+
     /**
      * 注册Bean对象到注册表中
      *
@@ -30,8 +32,8 @@ interface BeanDefinitionRegistry {
      * @param beanName Bean的名称
      * @return BeanDefinition
      */
-    @Throws(Exception::class)
-    fun getBeanDefinition(beanName: String): BeanDefinition?
+    @Throws(NoSuchBeanDefinitionException::class)
+    fun getBeanDefinition(beanName: String): BeanDefinition
 
     /**
      * 注册表中是否包含指定名称的Bean对象
@@ -46,12 +48,13 @@ interface BeanDefinitionRegistry {
      *
      * @return boolean
      */
-    val beanDefinitionCount: Int
+    fun getBeanDefinitionCount(): Int
 
     /**
      * 返回注册表中Bean对象的名称集合
      *
      * @return 名称集合
      */
-    val beanDefinitionNames: Array<String>
+    fun getBeanDefinitionNames(): Array<String>
+
 }

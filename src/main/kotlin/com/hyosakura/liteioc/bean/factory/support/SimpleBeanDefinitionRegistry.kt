@@ -1,6 +1,7 @@
 package com.hyosakura.liteioc.bean.factory.support
 
 import com.hyosakura.liteioc.bean.BeanDefinition
+import com.hyosakura.liteioc.bean.factory.NoSuchBeanDefinitionException
 import java.util.concurrent.ConcurrentHashMap
 
 
@@ -9,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * @author LovesAsuna
  */
-class SimpleBeanDefinitionRegistry : BeanDefinitionRegistry {
+open class SimpleBeanDefinitionRegistry : BeanDefinitionRegistry {
     private val beanDefinitionMap: MutableMap<String, BeanDefinition> = ConcurrentHashMap()
 
     override fun registerBeanDefinition(beanName: String, beanDefinition: BeanDefinition) {
@@ -21,17 +22,20 @@ class SimpleBeanDefinitionRegistry : BeanDefinitionRegistry {
     }
 
     @Throws(Exception::class)
-    override fun getBeanDefinition(beanName: String): BeanDefinition? {
-        return beanDefinitionMap[beanName]
+    override fun getBeanDefinition(beanName: String): BeanDefinition {
+        return beanDefinitionMap[beanName] ?: throw NoSuchBeanDefinitionException(beanName)
     }
 
     override fun containsBeanDefinition(beanName: String): Boolean {
         return beanDefinitionMap.containsKey(beanName)
     }
 
-    override val beanDefinitionCount: Int
-        get() = beanDefinitionMap.size
+    override fun getBeanDefinitionCount(): Int {
+        return beanDefinitionMap.size
+    }
 
-    override val beanDefinitionNames: Array<String>
-        get() = beanDefinitionMap.keys.toTypedArray()
+    override fun getBeanDefinitionNames(): Array<String> {
+        return beanDefinitionMap.keys.toTypedArray()
+    }
+
 }
